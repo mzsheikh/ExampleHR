@@ -12,6 +12,7 @@ export function useTimeOffDashboard() {
     const queryClient = useQueryClient();
     const {
         selectedLocationId,
+        personaView,
         form,
         mode,
         toast,
@@ -19,6 +20,7 @@ export function useTimeOffDashboard() {
         selectLocation,
         setForm,
         setMode,
+        setPersonaView,
         setToast,
         setOptimisticRequestId
     } = useTimeOffUiStore();
@@ -154,7 +156,9 @@ export function useTimeOffDashboard() {
             balances,
             requests,
             selectedLocationId,
+            personaView,
             status: balancesQuery.isLoading || requestsQuery.isLoading ? "loading" : balancesQuery.isError || requestsQuery.isError ? "error" : balancesQuery.isFetching || requestsQuery.isFetching ? "refreshing" : "ready",
+            syncLabel: balancesQuery.isFetching || requestsQuery.isFetching ? "Refreshing HCM balances" : balancesQuery.dataUpdatedAt || requestsQuery.dataUpdatedAt ? "Just refreshed" : "Loading HCM balances",
             toast,
             optimisticRequestId,
             lastBatchSyncedAt: balancesQuery.dataUpdatedAt ? new Date(balancesQuery.dataUpdatedAt).toISOString() : undefined
@@ -165,6 +169,7 @@ export function useTimeOffDashboard() {
         selectedBalance,
         setForm,
         setMode,
+        setPersonaView,
         selectLocation,
         submitRequest,
         decide,

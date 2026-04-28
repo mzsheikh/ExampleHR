@@ -11,6 +11,7 @@ const defaultForm = {
 };
 
 export const useTimeOffUiStore = create((set) => ({
+  personaView: "all",
   selectedLocationId: "nyc",
   form: defaultForm,
   mode: "normal",
@@ -23,6 +24,7 @@ export const useTimeOffUiStore = create((set) => ({
     })),
   setForm: (form) => set({ form }),
   setMode: (mode) => set({ mode }),
+  setPersonaView: (personaView) => set({ personaView }),
   setToast: (toast) => set({ toast }),
   setOptimisticRequestId: (optimisticRequestId) => set({ optimisticRequestId })
 }));

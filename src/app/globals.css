@@ -121,6 +121,36 @@ select {
   padding: 0.65rem 0.8rem;
 }
 
+.syncBadge {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.86rem;
+  font-weight: 700;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.8rem;
+  white-space: nowrap;
+}
+
+.sync-refreshing {
+  background: var(--amber-soft);
+  border-color: #edd492;
+  color: var(--amber);
+}
+
+.sync-ready {
+  background: var(--green-soft);
+  border-color: #bddfcf;
+  color: var(--accent-strong);
+}
+
+.sync-loading {
+  background: var(--blue-soft);
+  border-color: #bfd1e3;
+  color: var(--blue);
+}
+
 .toast-info {
   background: var(--blue-soft);
   border-color: #bfd1e3;
@@ -145,6 +175,31 @@ select {
   display: grid;
   gap: 18px;
   grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+}
+
+.dashboardGrid.view-employee,
+.dashboardGrid.view-manager {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.personaNav {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 4px;
+}
+
+.personaNav button {
+  border-color: transparent;
+  min-height: 2.25rem;
+}
+
+.personaNav button.active {
+  background: var(--accent);
+  color: #fff;
 }
 
 .panel {
@@ -362,6 +417,12 @@ select {
   }
 
   .topActions > * {
+    width: 100%;
+  }
+
+  .personaNav {
+    display: grid;
+    grid-template-columns: 1fr;
     width: 100%;
   }
 }

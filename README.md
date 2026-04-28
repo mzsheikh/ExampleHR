@@ -2,6 +2,8 @@
 
 Next.js App Router implementation of the ExampleHR time-off service and UI described in `AGENTS.md`.
 
+This project is implemented with JavaScript and JSX files.
+
 ## What is included
 
 - Employee balances per location with optimistic pending holds.

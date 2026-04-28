@@ -32,16 +32,16 @@ Non-functional requirements:
 
 ## Solution Structure
 
-- `src/app/api/hcm/balances/route.ts`: expensive batch corpus read.
-- `src/app/api/hcm/balance/route.ts`: authoritative per-cell balance read.
-- `src/app/api/hcm/anniversary-bonus/route.ts`: external balance mutation simulation.
-- `src/app/api/time-off/requests/route.ts`: ExampleHR request creation and listing.
-- `src/app/api/time-off/requests/[requestId]/decision/route.ts`: manager approve/deny endpoint.
-- `src/lib/time-off/server-store.ts`: in-memory HCM/request simulator used by route handlers and tests.
-- `src/lib/time-off/reconciliation.ts`: pure reconciliation rules.
-- `src/lib/time-off/use-time-off.ts`: client data layer and mutation orchestration.
+- `src/app/api/hcm/balances/route.js`: expensive batch corpus read.
+- `src/app/api/hcm/balance/route.js`: authoritative per-cell balance read.
+- `src/app/api/hcm/anniversary-bonus/route.js`: external balance mutation simulation.
+- `src/app/api/time-off/requests/route.js`: ExampleHR request creation and listing.
+- `src/app/api/time-off/requests/[requestId]/decision/route.js`: manager approve/deny endpoint.
+- `src/lib/time-off/server-store.js`: in-memory HCM/request simulator used by route handlers and tests.
+- `src/lib/time-off/reconciliation.js`: pure reconciliation rules.
+- `src/lib/time-off/use-time-off.js`: client data layer and mutation orchestration.
 - `src/components/time-off/*`: presentational UI for employee and manager views.
-- `src/components/time-off/time-off.stories.tsx`: state matrix stories.
+- `src/components/time-off/time-off.stories.jsx`: state matrix stories.
 
 ## State And Data Strategy
 
@@ -104,11 +104,11 @@ Presentational components are intentionally prop-driven so Storybook can cover e
 
 Unit tests:
 
-- `reconciliation.test.ts` guards pure optimistic/reconciliation decisions. These tests catch regressions in the most important correctness policy.
+- `reconciliation.test.js` guards pure optimistic/reconciliation decisions. These tests catch regressions in the most important correctness policy.
 
 Mock HCM integration tests:
 
-- `server-store.test.ts` verifies request submission, conflict rejection, silent wrong success, and external bonus mutation. These tests guard the route-handler business logic without requiring a web server.
+- `server-store.test.js` verifies request submission, conflict rejection, silent wrong success, and external bonus mutation. These tests guard the route-handler business logic without requiring a web server.
 
 Storybook interaction tests:
 

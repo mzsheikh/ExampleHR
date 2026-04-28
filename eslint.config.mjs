@@ -15,5 +15,5 @@ export default [
   {
     ignores: [".next/**", "node_modules/**", "storybook-static/**", "coverage/**"]
   },
-  ...compat.extends("next/core-web-vitals", "next/typescript", "plugin:storybook/recommended")
+  ...compat.extends("next/core-web-vitals", "plugin:storybook/recommended")
 ];

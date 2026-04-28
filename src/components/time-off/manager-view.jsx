@@ -1,42 +1,22 @@
 "use client";
-
 import { Check, ShieldCheck, X } from "lucide-react";
 import { summarizeBalanceContext } from "@/lib/time-off/reconciliation";
-import type { BalanceCell, HcmMode, TimeOffRequest } from "@/lib/time-off/types";
 import { StatusPill } from "./status-pill";
-
-type Props = {
-  balances: BalanceCell[];
-  requests: TimeOffRequest[];
-  busy?: boolean;
-  onDecision: (requestId: string, decision: "approve" | "deny", mode?: HcmMode) => void;
-};
-
-export function ManagerView({ balances, requests, busy, onDecision }: Props) {
-  const reviewable = requests.filter((request) => request.status === "pending" || request.status === "needs_review");
-
-  return (
-    <section className="panel managerPanel">
+export function ManagerView({ balances, requests, busy, onDecision }) {
+    const reviewable = requests.filter((request) => request.status === "pending" || request.status === "needs_review");
+    return (<section className="panel managerPanel">
       <div className="sectionHeading">
         <div>
           <p className="eyebrow">Manager</p>
           <h2>Decision queue</h2>
         </div>
-        <ShieldCheck size={22} aria-hidden />
+        <ShieldCheck size={22} aria-hidden/>
       </div>
 
-      {reviewable.length === 0 ? (
-        <p className="empty">No pending requests need a decision.</p>
-      ) : (
-        <div className="decisionList">
+      {reviewable.length === 0 ? (<p className="empty">No pending requests need a decision.</p>) : (<div className="decisionList">
           {reviewable.map((request) => {
-            const balance = balances.find(
-              (candidate) =>
-                candidate.employeeId === request.employeeId && candidate.locationId === request.locationId
-            );
-
-            return (
-              <article className="decisionCard" key={request.id}>
+                const balance = balances.find((candidate) => candidate.employeeId === request.employeeId && candidate.locationId === request.locationId);
+                return (<article className="decisionCard" key={request.id}>
                 <div className="decisionMain">
                   <div>
                     <strong>{request.employeeName}</strong>
@@ -47,7 +27,7 @@ export function ManagerView({ balances, requests, busy, onDecision }: Props) {
                       {request.startsOn} to {request.endsOn}
                     </small>
                   </div>
-                  <StatusPill status={request.status} />
+                  <StatusPill status={request.status}/>
                 </div>
 
                 <div className="balanceContext">
@@ -57,27 +37,19 @@ export function ManagerView({ balances, requests, busy, onDecision }: Props) {
 
                 <div className="decisionActions">
                   <button type="button" onClick={() => onDecision(request.id, "deny")} disabled={busy}>
-                    <X size={16} />
+                    <X size={16}/>
                     Deny
                   </button>
-                  <button
-                    className="primaryButton"
-                    type="button"
-                    onClick={() => onDecision(request.id, "approve")}
-                    disabled={busy}
-                  >
-                    <Check size={16} />
+                  <button className="primaryButton" type="button" onClick={() => onDecision(request.id, "approve")} disabled={busy}>
+                    <Check size={16}/>
                     Verify and approve
                   </button>
                   <button type="button" onClick={() => onDecision(request.id, "approve", "conflict")} disabled={busy}>
                     Simulate conflict
                   </button>
                 </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
-    </section>
-  );
+              </article>);
+            })}
+        </div>)}
+    </section>);
 }

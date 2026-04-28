@@ -4,6 +4,11 @@ Next.js App Router implementation of the ExampleHR time-off service and UI descr
 
 This project is implemented with JavaScript and JSX files. The backend uses Vercel API routes, Neon PostgreSQL, Drizzle ORM, React Query for server state, and Zustand for UI-only state.
 
+## Links
+
+- GitHub: https://github.com/mzsheikh/ExampleHR
+- Production: https://example-hr-olive.vercel.app/
+
 ## What is included
 
 - Employee balances per location with optimistic pending holds.

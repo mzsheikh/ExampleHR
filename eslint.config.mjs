@@ -11,9 +11,11 @@ const compat = new FlatCompat({
   recommendedConfig: js.configs.recommended
 });
 
-export default [
+const eslintConfig = [
   {
-    ignores: [".next/**", "node_modules/**", "storybook-static/**", "coverage/**"]
+    ignores: [".next/**", "node_modules/**", "storybook-static/**", "coverage/**", ".pnpm-tool/**"]
   },
   ...compat.extends("next/core-web-vitals", "plugin:storybook/recommended")
 ];
+
+export default eslintConfig;

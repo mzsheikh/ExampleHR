@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { triggerAnniversaryBonus } from "@/lib/time-off/server-store";
+import { triggerAnniversaryBonus } from "@/lib/time-off/repository";
+
+export const runtime = "nodejs";
 export async function POST(request) {
     const body = (await request.json().catch(() => ({})));
     const balances = await triggerAnniversaryBonus(body.employeeId);

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { decideRequest } from "@/lib/time-off/server-store";
+import { decideRequest } from "@/lib/time-off/repository";
+
+export const runtime = "nodejs";
 export async function POST(request, { params }) {
     const { requestId } = await params;
     const body = (await request.json());

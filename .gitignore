@@ -3,5 +3,7 @@ node_modules
 storybook-static
 coverage
 .env*.local
+.pnpm-tool
 
 *storybook.log
+.env

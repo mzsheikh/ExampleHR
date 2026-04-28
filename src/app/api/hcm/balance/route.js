@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { getBalance } from "@/lib/time-off/server-store";
+import { getBalance } from "@/lib/time-off/repository";
+
+export const runtime = "nodejs";
 export async function GET(request) {
     const search = request.nextUrl.searchParams;
     const employeeId = search.get("employeeId");

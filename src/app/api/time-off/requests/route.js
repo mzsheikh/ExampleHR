@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { listRequests, submitTimeOff } from "@/lib/time-off/server-store";
+import { listRequests, submitTimeOff } from "@/lib/time-off/repository";
+
+export const runtime = "nodejs";
 export async function GET(request) {
     const status = request.nextUrl.searchParams.get("status") ?? undefined;
     const requests = await listRequests(status);

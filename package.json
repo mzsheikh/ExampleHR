@@ -11,15 +11,20 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "db:setup": "node scripts/setup-db.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@tanstack/react-query": "^5.90.12",
     "@vitejs/plugin-react": "^5.0.4",
+    "drizzle-orm": "^0.45.1",
     "next": "^15.5.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "lucide-react": "^0.468.0"
+    "lucide-react": "^0.468.0",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
@@ -27,6 +32,9 @@
     "@testing-library/user-event": "^14.5.2",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.5.6",
+    "@next/eslint-plugin-next": "^15.5.6",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^25.0.1",
     "vitest": "^2.1.8",
     "storybook": "^10.3.5",

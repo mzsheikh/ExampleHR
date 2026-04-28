@@ -2,16 +2,39 @@
 
 Next.js App Router implementation of the ExampleHR time-off service and UI described in `AGENTS.md`.
 
-This project is implemented with JavaScript and JSX files.
+This project is implemented with JavaScript and JSX files. The backend uses Vercel API routes, Neon PostgreSQL, Drizzle ORM, React Query for server state, and Zustand for UI-only state.
 
 ## What is included
 
 - Employee balances per location with optimistic pending holds.
 - Manager decision queue with decision-time HCM context.
 - Mock HCM route handlers for batch reads, per-cell reads, conflicts, slow responses, invalid dimensions, silent wrong successes, and anniversary bonuses.
+- Neon-backed serverless API routes for balances, request submission, manager approval/denial, and setup/seed.
 - Storybook stories for meaningful lifecycle states.
 - Vitest tests for reconciliation and mock HCM behavior.
 - TRD at `docs/TRD-Time-Off.md`.
+
+## Environment
+
+Set these in Vercel Project Settings:
+
+```bash
+DATABASE_URL="your Neon PostgreSQL connection string"
+SETUP_TOKEN="a long random setup token"
+```
+
+Do not commit the real database URL. The setup endpoint is:
+
+```bash
+curl -X POST https://your-app.vercel.app/api/admin/setup \
+  -H "x-setup-token: $SETUP_TOKEN"
+```
+
+For local setup:
+
+```bash
+DATABASE_URL="your Neon PostgreSQL connection string" pnpm db:setup
+```
 
 ## Commands
 

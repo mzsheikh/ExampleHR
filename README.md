@@ -1,85 +1,125 @@
-# ExampleHR Time Off
+# ExampleHR Time-Off Microservice
 
-Next.js App Router implementation of the ExampleHR time-off service and UI described in `AGENTS.md`.
+Backend-first implementation of the ExampleHR take-home assignment. The primary deliverable is now a NestJS REST microservice backed by SQLite that manages time-off balances, request submission, manager decisions, and mock HCM behavior.
 
-This project is implemented with JavaScript and JSX files. The backend uses Vercel API routes, Neon PostgreSQL, Drizzle ORM, React Query for server state, and Zustand for UI-only state.
+The previous Next.js frontend remains in the repo as an optional demo, but the PDF assignment is satisfied through the NestJS service in `src/backend`.
 
-## Links
+## Stack
 
-- GitHub: https://github.com/mzsheikh/ExampleHR
-- Production: https://example-hr-olive.vercel.app/
+- NestJS REST API using JavaScript modules.
+- SQLite persistence through Node 22's built-in `node:sqlite` module.
+- Vitest unit tests for service rules and Supertest integration tests against the real NestJS HTTP app.
+- Existing Next.js/Storybook UI kept as optional visualization material.
 
-## What is included
-
-- Employee balances per location with optimistic pending holds.
-- Manager decision queue with decision-time HCM context.
-- Mock HCM route handlers for batch reads, per-cell reads, conflicts, slow responses, invalid dimensions, silent wrong successes, and anniversary bonuses.
-- Neon-backed serverless API routes for balances, request submission, manager approval/denial, and setup/seed.
-- Storybook stories for meaningful lifecycle states.
-- Vitest tests for reconciliation and mock HCM behavior.
-- TRD at `docs/TRD-Time-Off.md`.
-
-## Environment
-
-Set these in Vercel Project Settings:
-
-```bash
-DATABASE_URL="your Neon PostgreSQL connection string"
-SETUP_TOKEN="a long random setup token"
-```
-
-Do not commit the real database URL. The setup endpoint is:
-
-```bash
-curl -X POST https://your-app.vercel.app/api/admin/setup \
-  -H "x-setup-token: $SETUP_TOKEN"
-```
-
-For local setup:
-
-```bash
-DATABASE_URL="your Neon PostgreSQL connection string" pnpm db:setup
-```
-
-## Commands
+## Run
 
 ```bash
 pnpm install
 pnpm dev
-pnpm storybook
-pnpm test
 ```
 
-## How to use the app
+The microservice starts on `http://localhost:3001` by default.
 
-1. Install dependencies with `pnpm install`.
-2. Start the Next.js app with `pnpm dev`.
-3. Open the local URL printed by Next.js, usually `http://localhost:3000`.
-4. Use the employee view to inspect time-off balances by location, choose request dates, enter the number of days, and submit a request.
-5. Use the mode controls in the UI to simulate HCM behavior such as normal success, slow responses, conflicts, invalid dimensions, or silent wrong successes.
-6. Use the manager view to review pending requests. The manager cards show decision-time balance context so an approval is based on the latest HCM-aware state, not just the employee's original screen.
-7. Trigger the anniversary bonus simulation to see how the UI reconciles a mid-session balance change from the HCM source of truth.
-
-The app treats HCM as authoritative. ExampleHR gives fast optimistic feedback, but it keeps requests in pending or needs-review states until read-after-write verification and reconciliation prove the balance is still valid.
-
-## Storybook
-
-Run Storybook with:
+Environment variables:
 
 ```bash
+PORT=3001
+TIME_OFF_DB_PATH=./data/examplehr.sqlite
+```
+
+## Test And Coverage
+
+```bash
+pnpm test
+pnpm test:coverage
+pnpm lint
+```
+
+Current local verification:
+
+- `pnpm test`: 19 tests passing.
+- `pnpm test:coverage`: 90.41% statement coverage across the backend/reconciliation target.
+- `pnpm lint`: passing.
+
+Coverage focuses on the backend assignment surface, not the optional frontend demo.
+
+## API Surface
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/health` | Service health check. |
+| `GET` | `/hcm/balances` | Expensive batch HCM balance corpus read. |
+| `GET` | `/hcm/balance?employeeId=&locationId=&mode=` | Authoritative per-employee/per-location HCM cell read. |
+| `POST` | `/hcm/balance` | Mock HCM cell write with optional `availableDelta`, `pendingDelta`, and simulation `mode`. |
+| `POST` | `/hcm/anniversary-bonus` | External HCM mutation that adds one day to an employee's balances. |
+| `GET` | `/time-off/requests?status=` | List time-off requests. |
+| `POST` | `/time-off/requests` | Submit an employee request as pending after authoritative balance verification. |
+| `POST` | `/time-off/requests/:requestId/decision` | Manager approve/deny with decision-time HCM verification. |
+| `POST` | `/admin/reset` | Reset local SQLite data to seed state. |
+
+Supported HCM simulation modes:
+
+- `normal`: authoritative read/write succeeds.
+- `slow`: delays the HCM interaction.
+- `conflict`: HCM rejects the operation.
+- `invalid_dimension`: HCM no longer recognizes the employee/location cell.
+- `silent_wrong`: HCM appears to succeed but read-after-write verification does not match.
+
+## Seed Data
+
+- Avery Johnson:
+  - New York: 10 available, 0 pending.
+  - London: 4 available, 0 pending.
+- Mina Patel:
+  - Remote: 14 available, 2 pending.
+  - One seeded pending request for manager review.
+
+## Example Requests
+
+Submit a request:
+
+```bash
+curl -X POST http://localhost:3001/time-off/requests \
+  -H "content-type: application/json" \
+  -d '{
+    "employeeId": "emp-1001",
+    "locationId": "nyc",
+    "days": 2,
+    "startsOn": "2026-05-04",
+    "endsOn": "2026-05-05",
+    "reason": "Recharge"
+  }'
+```
+
+Approve after decision-time verification:
+
+```bash
+curl -X POST http://localhost:3001/time-off/requests/REQUEST_ID/decision \
+  -H "content-type: application/json" \
+  -d '{ "managerId": "mgr-3001", "decision": "approve" }'
+```
+
+Simulate a silent HCM contradiction:
+
+```bash
+curl -X POST http://localhost:3001/time-off/requests \
+  -H "content-type: application/json" \
+  -d '{
+    "employeeId": "emp-1001",
+    "locationId": "nyc",
+    "days": 1,
+    "startsOn": "2026-06-01",
+    "endsOn": "2026-06-01",
+    "reason": "Errand",
+    "mode": "silent_wrong"
+  }'
+```
+
+## Optional Frontend Demo
+
+```bash
+pnpm frontend:dev
 pnpm storybook
 ```
 
-Open the `Time Off / Reconciliation States` section in the sidebar. These stories are intentionally state-focused: they show the awkward cases a time-off product must handle when the frontend is fast but the balance source of truth lives in HCM.
-
-### Reconciliation States
-
-- `Employee Loading Empty` shows the initial loading state before the batch HCM balance corpus has hydrated the UI. It verifies the app has a calm fallback instead of rendering misleading zero balances.
-- `Employee Fresh Balances` shows a normal employee screen with recently synced per-location balances. This is the baseline happy path where the employee can submit a request and get immediate pending feedback.
-- `Employee Stale Balance` shows balances whose last sync is old enough to be treated carefully. The UI still renders useful information, but the state communicates that HCM should be checked before anyone relies on the number.
-- `Employee Optimistic Pending` shows the instant-feedback path after an employee submits time off. ExampleHR temporarily holds the requested days locally while HCM is still responding, so the user sees that their action registered without being told it is finally approved.
-- `Hcm Silently Wrong` shows the defensive path where HCM returns apparent success, but the follow-up authoritative read does not match. The request moves to a review-oriented state instead of pretending the write was trustworthy.
-- `Manager Decision Time Context` shows the manager approval surface with current balance context visible at decision time. This protects managers from approving against a balance snapshot that may be minutes old.
-- `Manager Conflict Needs Review` shows a request that cannot be confidently approved because the balance context conflicts with the pending request. The manager sees a needs-review status instead of a false approval path.
-
-Use these stories as regression targets when changing the data layer or UI. A future change should not remove the distinction between optimistic feedback, HCM rejection, stale reads, silent contradictions, and manager-time verification.
+The Next.js UI still demonstrates employee/manager states, but the backend microservice and tests are the primary PDF assignment deliverables.

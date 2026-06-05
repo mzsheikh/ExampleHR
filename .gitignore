@@ -2,6 +2,7 @@
 node_modules
 storybook-static
 coverage
+data
 .env*.local
 .pnpm-tool
 

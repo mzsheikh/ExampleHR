@@ -1,162 +1,161 @@
-Open the app in two browser windows:
+# Manual API Test Scenarios
 
-Window A: employee view
-Window B: manager view
-The app shows both panes on the same page, so using two windows helps you see real-time-ish updates.
+Start the backend:
 
-Seed Data
-You should initially see:
+```bash
+pnpm dev
+```
 
-Avery Johnson:
+Base URL: `http://localhost:3001`
 
-New York: 10 available, 0 pending
-London: 4 available, 0 pending
-Mina Patel:
+Reset data before a manual pass:
 
-Remote: 14 available, 2 pending
-Manager queue:
+```bash
+curl -X POST http://localhost:3001/admin/reset
+```
 
-Mina Patel request for 2 days, status Pending HCM
-Scenario 1: Employee Submits Valid Request
-In employee view:
+## Seed State
 
-Select New York.
-Enter 2 days.
-Choose Normal HCM.
-Click Submit as pending.
+- Avery Johnson, New York: 10 available, 0 pending.
+- Avery Johnson, London: 4 available, 0 pending.
+- Mina Patel, Remote: 14 available, 2 pending.
+- One seeded Mina Patel request with status `pending`.
+
+## Scenario 1: Batch And Cell Reads
+
+```bash
+curl http://localhost:3001/hcm/balances
+curl "http://localhost:3001/hcm/balance?employeeId=emp-1001&locationId=nyc"
+```
+
 Expected:
 
-Avery New York changes from 10 available / 0 pending to 8 available / 2 pending.
-Request appears as Pending HCM.
-It should not say Approved.
-In manager view, the new request should appear after polling or refresh.
-This validates: employee gets instant feedback, but not false approval.
+- Batch endpoint returns all three balance rows and an expensive-read warning.
+- Cell endpoint returns Avery/New York with 10 available and HCM version 7.
 
-Scenario 2: Manager Approves Request
-In manager view:
+## Scenario 2: Valid Employee Submission
 
-Find Avery’s pending request.
-Confirm decision-time context shows the latest balance, for example 8 available, 2 pending.
-Click Verify and approve.
+```bash
+curl -X POST http://localhost:3001/time-off/requests \
+  -H "content-type: application/json" \
+  -d '{
+    "employeeId": "emp-1001",
+    "locationId": "nyc",
+    "days": 2,
+    "startsOn": "2026-05-04",
+    "endsOn": "2026-05-05",
+    "reason": "Recharge"
+  }'
+```
+
 Expected:
 
-Request status becomes Approved.
-Avery New York becomes 8 available / 0 pending.
-Available days should not increase back.
-Pending days should be released because the request is finalized.
-This validates: manager approval re-checks balance at approval time.
+- HTTP 202.
+- Request status is `pending`.
+- `balanceHeld` is `true`.
+- New York moves to 8 available, 2 pending.
+- The request is not approved.
 
-Scenario 3: Manager Denies Request
-Submit another Avery request for 1 day.
+## Scenario 3: Manager Approval
 
-Expected before denial:
+Use the request ID from Scenario 2:
 
-New York moves from 8 available / 0 pending to 7 available / 1 pending.
-Then in manager view:
+```bash
+curl -X POST http://localhost:3001/time-off/requests/REQUEST_ID/decision \
+  -H "content-type: application/json" \
+  -d '{ "managerId": "mgr-3001", "decision": "approve" }'
+```
 
-Click Deny.
 Expected:
 
-Request status becomes Denied.
-New York returns to 8 available / 0 pending.
-This validates: denial releases the held balance.
+- Request status becomes `approved`.
+- `balanceHeld` becomes `false`.
+- New York remains 8 available and moves to 0 pending.
 
-Scenario 4: Insufficient Balance
-In employee view:
+## Scenario 4: Manager Denial
 
-Select London.
-Enter 20 days.
-Choose Normal HCM.
-Submit.
+Submit another small request, then deny it:
+
+```bash
+curl -X POST http://localhost:3001/time-off/requests/REQUEST_ID/decision \
+  -H "content-type: application/json" \
+  -d '{ "managerId": "mgr-3001", "decision": "deny" }'
+```
+
 Expected:
 
-HCM rejects the request.
-London should remain 4 available / 0 pending.
-No approved request should appear.
-You should see a rejection/error toast.
-This validates: backend prevents overspending the authoritative balance.
+- Request status becomes `denied`.
+- Held days are released back to available.
 
-Scenario 5: HCM Conflict On Submit
-In employee view:
+## Scenario 5: Insufficient Balance
 
-Select New York.
-Enter 1 day.
-Choose Conflict.
-Submit.
+```bash
+curl -X POST http://localhost:3001/time-off/requests \
+  -H "content-type: application/json" \
+  -d '{
+    "employeeId": "emp-1001",
+    "locationId": "london",
+    "days": 20,
+    "startsOn": "2026-06-01",
+    "endsOn": "2026-06-02",
+    "reason": "Long trip"
+  }'
+```
+
 Expected:
 
-Request is rejected.
-Balance rolls back to the previous value.
-No pending hold should remain.
-This validates: optimistic UI rollback works.
+- HTTP 409.
+- London remains 4 available, 0 pending.
+- No approved request is created.
 
-Scenario 6: Silent Wrong HCM Success
-In employee view:
+## Scenario 6: Silent HCM Success
 
-Select New York.
-Enter 1 day.
-Choose Silent wrong.
-Submit.
+```bash
+curl -X POST http://localhost:3001/time-off/requests \
+  -H "content-type: application/json" \
+  -d '{
+    "employeeId": "emp-1001",
+    "locationId": "nyc",
+    "days": 1,
+    "startsOn": "2026-06-01",
+    "endsOn": "2026-06-01",
+    "reason": "Errand",
+    "mode": "silent_wrong"
+  }'
+```
+
 Expected:
 
-Request appears as Needs review.
-Balance should not decrease.
-UI should warn that HCM success did not reconcile.
-This validates: app does not blindly trust a success response.
+- HTTP 202 with a warning.
+- Request status is `needs_review`.
+- `balanceHeld` is `false`.
+- New York balance does not decrease.
 
-Scenario 7: Anniversary Bonus Mid-Session
-In employee view:
+## Scenario 7: Manager Approval Conflict
 
-Note Avery’s New York and London balances.
-Click the sparkle button in the employee panel.
+Submit a normal request, then approve with conflict mode:
+
+```bash
+curl -X POST http://localhost:3001/time-off/requests/REQUEST_ID/decision \
+  -H "content-type: application/json" \
+  -d '{ "managerId": "mgr-3001", "decision": "approve", "mode": "conflict" }'
+```
+
 Expected:
 
-Avery’s balances increase by 1 day per location.
-Versions increase.
-Existing request statuses should not suddenly become approved or denied.
-This validates: external HCM balance changes reconcile without surprising the workflow.
+- HTTP 409.
+- Request status becomes `needs_review`.
+- `balanceHeld` remains `true` so a later denial can release the hold.
 
-Scenario 8: Manager Approval Conflict
-Submit a normal request first so it is pending.
+## Scenario 8: Anniversary Bonus
 
-In manager view:
+```bash
+curl -X POST http://localhost:3001/hcm/anniversary-bonus \
+  -H "content-type: application/json" \
+  -d '{ "employeeId": "emp-1001" }'
+```
 
-Click Simulate conflict.
 Expected:
 
-Request becomes or remains Needs review.
-It should not become approved.
-Balance should remain consistent with the authoritative row.
-This validates: manager approval is pessimistic and decision-time verified.
-
-Scenario 9: Slow HCM
-In employee view:
-
-Select Slow HCM.
-Submit a small request.
-Expected:
-
-UI immediately shows pending/working feedback.
-Final balance updates after delay.
-Request still ends as Pending HCM, not approved.
-This validates: slow backend does not break the honest lifecycle.
-
-Best Manual Check
-For every action, check this invariant:
-
-available + pending should move predictably
-Submit pending request:
-
-available decreases
-pending increases
-Approve:
-
-available stays the same
-pending decreases
-Deny:
-
-available increases back
-pending decreases
-Conflict/rejection:
-
-balance returns to or remains at authoritative value
+- Avery's New York and London balances each gain 1 available day.
+- Existing request statuses do not change.

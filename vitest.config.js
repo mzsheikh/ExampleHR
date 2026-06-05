@@ -8,8 +8,8 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
-      include: ["src/lib/time-off/reconciliation.js", "src/lib/time-off/sample-data.js"],
-      exclude: ["**/*.test.js", "**/*.stories.jsx"]
+      include: ["src/backend/**/*.js", "src/lib/time-off/reconciliation.js"],
+      exclude: ["src/backend/main.js", "**/*.test.js", "**/*.stories.jsx"]
     }
   },
   resolve: {

@@ -13,7 +13,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   {
-    ignores: [".next/**", "node_modules/**", "storybook-static/**", "coverage/**", ".pnpm-tool/**"]
+    ignores: [".next/**", "node_modules/**", "storybook-static/**", "coverage/**", "test-coverage/**", ".pnpm-tool/**"]
   },
   ...compat.extends("next/core-web-vitals", "plugin:storybook/recommended")
 ];

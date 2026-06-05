@@ -2,16 +2,18 @@
 
 Backend-first implementation of the ExampleHR take-home assignment. The primary deliverable is now a NestJS REST microservice backed by SQLite that manages time-off balances, request submission, manager decisions, and mock HCM behavior.
 
-The previous Next.js frontend remains in the repo as an optional demo, but the PDF assignment is satisfied through the NestJS service in `src/backend`.
+The Next.js frontend remains in the repo and now calls the NestJS backend directly through `NEXT_PUBLIC_TIME_OFF_API_BASE_URL`.
 
 ## Stack
 
 - NestJS REST API using JavaScript modules.
 - SQLite persistence through Node 22's built-in `node:sqlite` module.
 - Vitest unit tests for service rules and Supertest integration tests against the real NestJS HTTP app.
-- Existing Next.js/Storybook UI kept as optional visualization material.
+- Existing Next.js/Storybook UI wired to the NestJS API for local visualization.
 
 ## Run
+
+Backend only:
 
 ```bash
 pnpm install
@@ -20,18 +22,35 @@ pnpm dev
 
 The microservice starts on `http://localhost:3001` by default.
 
+Frontend plus backend:
+
+```bash
+# Terminal 1
+pnpm dev
+
+# Terminal 2
+pnpm frontend:dev
+```
+
+The frontend starts on `http://localhost:3000` and calls the backend at `http://localhost:3001`.
+
 Environment variables:
 
 ```bash
 PORT=3001
 TIME_OFF_DB_PATH=./data/examplehr.sqlite
+CORS_ORIGIN=
+NEXT_PUBLIC_TIME_OFF_API_BASE_URL=http://localhost:3001
 ```
+
+Leave `CORS_ORIGIN` empty for local development, or set it to a comma-separated allowlist such as `http://localhost:3000,http://localhost:3002`.
 
 ## Test And Coverage
 
 ```bash
 pnpm test
 pnpm test:coverage
+pnpm test:coverage:backend
 pnpm lint
 ```
 
@@ -39,9 +58,10 @@ Current local verification:
 
 - `pnpm test`: 19 tests passing.
 - `pnpm test:coverage`: 90.41% statement coverage across the backend/reconciliation target.
+- `pnpm test:coverage:backend`: 90.76% statement coverage across backend files only.
 - `pnpm lint`: passing.
 
-Coverage focuses on the backend assignment surface, not the optional frontend demo.
+GitHub Actions runs lint, the full test suite, backend-only coverage, and uploads `coverage/backend` as the `backend-coverage-report` artifact.
 
 ## API Surface
 
@@ -115,11 +135,11 @@ curl -X POST http://localhost:3001/time-off/requests \
   }'
 ```
 
-## Optional Frontend Demo
+## Frontend
 
 ```bash
 pnpm frontend:dev
 pnpm storybook
 ```
 
-The Next.js UI still demonstrates employee/manager states, but the backend microservice and tests are the primary PDF assignment deliverables.
+The Next.js UI demonstrates employee/manager states against the NestJS service. If the backend runs somewhere else, set `NEXT_PUBLIC_TIME_OFF_API_BASE_URL` before starting `pnpm frontend:dev`.

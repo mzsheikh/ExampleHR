@@ -8,6 +8,14 @@ pnpm dev
 
 Base URL: `http://localhost:3001`
 
+To exercise the connected frontend, keep the backend running and start the UI in a second terminal:
+
+```bash
+pnpm frontend:dev
+```
+
+Open `http://localhost:3000`. By default, the browser calls `http://localhost:3001` through `NEXT_PUBLIC_TIME_OFF_API_BASE_URL`.
+
 Reset data before a manual pass:
 
 ```bash

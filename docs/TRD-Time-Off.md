@@ -4,7 +4,7 @@
 
 ExampleHR needs a backend service that lets employees request time off while keeping the HCM system authoritative for balances. This implementation provides a NestJS REST microservice backed by SQLite. It models balances per employee/location, uses authoritative per-cell reads before important writes, supports expensive batch reconciliation, and keeps requests recoverable when HCM behavior is slow, contradictory, or unavailable.
 
-The existing Next.js UI remains as optional demo material. The backend deliverable lives in `src/backend`.
+The existing Next.js UI now calls the NestJS backend through `NEXT_PUBLIC_TIME_OFF_API_BASE_URL`, so the demo UI exercises the same service that the backend tests cover.
 
 ## Requirements And API
 
@@ -32,7 +32,7 @@ Supported simulation modes are `normal`, `slow`, `conflict`, `invalid_dimension`
 
 ## Architecture
 
-`src/backend/app.module.js` creates the NestJS application and wires controllers, the SQLite store, and the time-off service. The controllers in `src/backend/controllers.js` expose REST routes. `src/backend/time-off.service.js` owns business rules. `src/backend/sqlite-store.js` owns schema creation, seed data, transactions, and mapping between SQLite rows and API objects.
+`src/backend/app.module.js` creates the NestJS application, enables CORS for the frontend, and wires controllers, the SQLite store, and the time-off service. The controllers in `src/backend/controllers.js` expose REST routes. `src/backend/time-off.service.js` owns business rules. `src/backend/sqlite-store.js` owns schema creation, seed data, transactions, and mapping between SQLite rows and API objects.
 
 SQLite tables:
 
@@ -109,6 +109,7 @@ Current verification:
 
 - `pnpm test`: 19 passing tests.
 - `pnpm test:coverage`: 90.41% statement coverage on the backend/reconciliation target.
+- `pnpm test:coverage:backend`: 90.76% statement coverage on backend files only.
 - `pnpm lint`: passing.
 
 Recommended production additions would include authentication/authorization, idempotency keys for request submission, reviewed migrations, structured logging, and separate test fixtures for multi-manager approval policies.

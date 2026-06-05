@@ -34,9 +34,27 @@ export class BackendModule {
 
 Module({})(BackendModule);
 
+function resolveCorsOrigin(options) {
+  if (options.corsOrigin !== undefined) {
+    return options.corsOrigin;
+  }
+
+  const origin = process.env.CORS_ORIGIN;
+  if (!origin || origin === "true" || origin === "*") {
+    return true;
+  }
+
+  return origin.split(",").map((item) => item.trim()).filter(Boolean);
+}
+
 export async function createBackendApp(options = {}) {
   const app = await NestFactory.create(BackendModule.register(options), {
     logger: options.logger ?? ["error", "warn", "log"]
+  });
+  app.enableCors({
+    origin: resolveCorsOrigin(options),
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["content-type"]
   });
   app.enableShutdownHooks();
   return app;
